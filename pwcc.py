@@ -50,12 +50,15 @@ def paste_command():
       modified_string = transform_string(modified_string)
 
       text_area.insert(tk.END, modified_string)
+      text_area.see(tk.END)
 
       run_button.config(state=tk.NORMAL)
       copy_button.config(state=tk.NORMAL)
       
     else:
       text_area.insert(tk.END, f"剪切板内容不是 curl 命令\n===\n{clip}\n===\n请粘贴 curl 命令\n")
+      run_button.config(state=tk.DISABLED)
+      copy_button.config(state=tk.DISABLED)
       
   except tk.TclError:
     text_area.insert(tk.END, "剪切板为空或无法访问")
@@ -109,8 +112,8 @@ def run_command():
   except Exception as e:
     output_area.insert(tk.END, f"执行命令时发生错误:\n{e}\n")
 
-    # 使用 shlex.split 分割命令，处理空格和引号
   try:
+    # 使用 shlex.split 分割命令，处理空格和引号
     command_list = shlex.split(command)
     command_list[0] = curl_test[0]
 
@@ -125,6 +128,7 @@ def run_command():
     output, error = process.communicate() # 获取输出和错误信息
 
     output_area.insert(tk.END, output)  # 显示输出
+    output_area.see(tk.END)
     if error:
         output_area.insert(tk.END, f"Error:\n{error}\n")  # 显示错误信息
     else:
@@ -136,20 +140,34 @@ def run_command():
 
 
 def copy_command():
-  """将文本窗口内容复制到剪贴板"""
   try:
-    root.clipboard_put(text_area.get("1.0", tk.END).strip())
+    # 清空剪贴板 
+    root.clipboard_clear() 
+    # 将获取的内容重新保存到剪贴板 
+    root.clipboard_append(text_area.get("1.0", tk.END).strip())
+    
   except tk.TclError:
-    output_area.insert(tk.END, "剪切板为空或无法访问")
+    output_area.insert(tk.END, "剪切板无法访问或无法写入")
+    
+def copy_out_command():
+  try:
+    # 清空剪贴板 
+    root.clipboard_clear() 
+    # 将获取的内容重新保存到剪贴板 
+    root.clipboard_append(output_area.get("1.0", tk.END).strip())
+    
+  except tk.TclError:
+    output_area.insert(tk.END, "剪切板无法访问或无法写入")
 
-####
+
+###############
 
 root = tk.Tk()
 root.title("Windows command line curl 多行命令执行器")
 root.geometry("800x600")  # 设置初始窗口大小
 
 # 创建文本输入框
-text_area = scrolledtext.ScrolledText(root, height=15, width=120, wrap=tk.WORD)
+text_area = scrolledtext.ScrolledText(root, height=15, width=110, wrap=tk.WORD)
 text_area.pack(pady=10)
 
 # 创建按钮框架
@@ -168,8 +186,12 @@ run_button.pack(side=tk.LEFT, padx=5)
 copy_button = tk.Button(button_frame, text="复制命令", command=copy_command, state=tk.DISABLED)
 copy_button.pack(side=tk.LEFT, padx=5)
 
+# 创建复制按钮
+copy_out_button = tk.Button(button_frame, text="复制输出", command=copy_out_command)
+copy_out_button.pack(side=tk.LEFT, padx=5)
+
 # 创建输出显示区
-output_area = scrolledtext.ScrolledText(root, height=30, width=120, wrap=tk.WORD)
+output_area = scrolledtext.ScrolledText(root, height=30, width=110, wrap=tk.WORD)
 output_area.pack(pady=10)
 
 # 循环使用
