@@ -37,8 +37,8 @@ def transform_string(input_str):
         inner_str = match.group(1)
         # 替换双引号为 \"
         inner_str = inner_str.replace('"', '\\"')
-        inner_str = inner_str.replace('\r\n', '')
-        inner_str = inner_str.replace('\n', '')
+        # json必须压缩到一行
+        inner_str = "".join([line.strip() for line in inner_str.split('\n') if line])
         # 返回新的字符串，单引号替换为双引号
         return f'"{inner_str}"'
     
@@ -80,7 +80,7 @@ def run_command():
   command = command.replace("\\\n", "")
 
   output_area.delete("1.0", tk.END)
-  output_area.insert(tk.END, f"Running command: {command}\n")
+  output_area.insert(tk.END, f"Running command:\n{command}\n\n")
 
   curl_test = [curl_path, "--version"]
   try:
@@ -133,12 +133,13 @@ def run_command():
     )
     output, error = process.communicate() # 获取输出和错误信息
 
-    output_area.insert(tk.END, output)  # 显示输出
+    output_area.insert(tk.END, f"response:\n{output}\n")  # 显示输出
     output_area.see(tk.END)
-    if error:
-        output_area.insert(tk.END, f"Error:\n{error}\n")  # 显示错误信息
-    else:
-        output_area.insert(tk.END, "Command execution finished.\n")
+
+    # if error:
+    #     output_area.insert(tk.END, f"Error:\n{error}\n")  # 显示错误信息
+    # else:
+    #     output_area.insert(tk.END, "Command execution finished.\n")
   except FileNotFoundError:
       output_area.insert(tk.END, "Error: curl 命令没有找到，请确保 curl 命令在你的系统环境变量中.\n")
   except Exception as e:
