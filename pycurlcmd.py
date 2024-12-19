@@ -37,6 +37,8 @@ def transform_string(input_str):
         inner_str = match.group(1)
         # 替换双引号为 \"
         inner_str = inner_str.replace('"', '\\"')
+        inner_str = inner_str.replace('\r\n', '')
+        inner_str = inner_str.replace('\n', '')
         # 返回新的字符串，单引号替换为双引号
         return f'"{inner_str}"'
     
@@ -74,8 +76,8 @@ def run_command():
     output_area.insert(tk.END, "请输入 curl 命令\n")
     return
   # 替换续行符
-  command = command.replace("\\\n", "")
   command = command.replace("\\\r\n","")
+  command = command.replace("\\\n", "")
 
   output_area.delete("1.0", tk.END)
   output_area.insert(tk.END, f"Running command: {command}\n")
@@ -176,10 +178,11 @@ text_area.pack(pady=10)
 
 # 创建按钮框架
 button_frame = tk.Frame(root)
-button_frame.pack(pady=5)
+button_frame.pack(fill=tk.X, pady=5)
 
 # 创建粘贴按钮
 paste_button = tk.Button(button_frame, text="粘贴并转换", command=paste_command)
+# paste_button.pack(side=tk.LEFT, padx=5)
 paste_button.pack(side=tk.LEFT, padx=5)
 
 # 创建运行按钮
